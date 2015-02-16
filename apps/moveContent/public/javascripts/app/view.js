@@ -49,8 +49,18 @@ viewHandler = {
         $("#" + contentId).closest('tr').addClass("alert-success");
     },
 
-    displayContentErrorRow : function(contentId, message) {
-        $("#" + contentId).closest('tr').find('.rowMessage').html(JSON.stringify(message));
+    displayContentErrorRow : function(contentId, error) {
+        var message = ""
+        if(error.code == 500)
+            message = "Error, please try moving item again or contact admin"
+        if(error.code == 403)
+            message = "You are not allowed to move item to the target place"
+        else if(error.code == 400 && error.message == "api.core.v3.error.missing_event_access")
+            message = "Missing event access, contact admin"
+        else
+            message = "Error, please try moving item again or contact admin"
+
+        $("#" + contentId).closest('tr').find('.rowMessage').html(message);
         $("#" + contentId).closest('tr').addClass("alert-danger");
     },
 
@@ -95,6 +105,10 @@ viewHandler = {
 
     sortByOption : function(){
         return $("#sortByOption").val();
+    },
+
+    disableBlogsView : function(){
+        $("#nav-tabs").hide()
     }
 }
 

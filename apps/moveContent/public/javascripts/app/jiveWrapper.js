@@ -1,6 +1,6 @@
 var jiveWrapper = {
 
-    getCurrentPlaceUrl : function () {
+    getCurrentPlaceContext : function () {
         var deferred = Q.defer();
         var JIVE_GROUP_IDENTIFIER = 700;
         var JIVE_SPACE_IDENTIFIER = 14;
@@ -60,6 +60,23 @@ var jiveWrapper = {
                 else
                     deferred.resolve();
             })
+        });
+        return deferred.promise;
+    },
+
+    getContentTypesSupportedByCurrentPlace : function () {
+        var deferred = Q.defer();
+        var JIVE_GROUP_IDENTIFIER = 700;
+        var JIVE_SPACE_IDENTIFIER = 14;
+        osapi.jive.core.container.getLaunchContext(function (selection) {
+            console.log(selection);
+            var containerId = selection.jive.content.id;
+            var containerType = selection.jive.content.type == "osapi.jive.core.Group" ? JIVE_GROUP_IDENTIFIER : JIVE_SPACE_IDENTIFIER;
+
+            osapi.jive.corev3.places.get({entityDescriptor: [containerType, containerId]})
+                .execute(function (osapiResponse) {
+                    deferred.resolve(osapiResponse.list[0].contentTypes);
+                });
         });
         return deferred.promise;
     }

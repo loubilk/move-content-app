@@ -1,11 +1,11 @@
 var validator = Validator();
-var SUPPORTED_CONTENT_TYPES = ["document", "discussion", "file", "idea", "poll", "video", "event"];
+var CONTENT_TYPES_SUPPORTED_BY_APP = ["document", "discussion", "file", "idea", "poll", "video", "event"];
+var contentTypesForCurrentPlace = [];
 var isBlogsView = true;
 var sourcePlaceUrl;
 var targetPlaceUrl;
 var sourcePlaceBlogUrl;
 var targetPlaceBlogUrl;
-
 
 var displayTargetPlacePicker = function () {
     var setTargetPlaceNameAndUrl = function (place) {
@@ -79,16 +79,16 @@ var displayContentInCurrentPlace = function (paginationIndex){
         if(isBlogsView)
             return ["post"]
         var contentTypes = []
-        _.forEach(SUPPORTED_CONTENT_TYPES, function(contentType){
+        _.forEach(contentTypesForCurrentPlace, function(contentType){
             if(viewHandler.isContentTypeChecked(contentType))
                 contentTypes.push(contentType)
         })
         return contentTypes;
     }
 
-    var setupCurrentGroupURL = function() {
+    var setupCurrentGroupContext = function() {
         var deferred = Q.defer();
-        jiveWrapper.getCurrentPlaceUrl().then(function (placeData) {
+        jiveWrapper.getCurrentPlaceContext().then(function (placeData) {
             sourcePlaceUrl = placeData.placeUrl;
             sourcePlaceBlogUrl = placeData.placeBlogUrl;
             deferred.resolve();
@@ -122,7 +122,7 @@ var displayContentInCurrentPlace = function (paginationIndex){
     }
 
     setAppView()
-    setupCurrentGroupURL().then(function(){
+    setupCurrentGroupContext().then(function(){
         var itemsPerPage = viewHandler.itemsPerPage();
         var sortBy = viewHandler.sortByOption();
         console.log("items ", itemsPerPage);
@@ -148,6 +148,7 @@ var displayContentInCurrentPlace = function (paginationIndex){
     })
 };
 
+
 var refreshContent = function(){
     displayContentInCurrentPlace();
 }
@@ -160,13 +161,24 @@ var setupForBlog = function(){
 
 var setupForOtherContent = function(){
     isBlogsView = false;
-    viewHandler.setContentTypeButtonsWithHandlers(SUPPORTED_CONTENT_TYPES, refreshContent);
+    viewHandler.setContentTypeButtonsWithHandlers(contentTypesForCurrentPlace, refreshContent);
     refreshContent()
 }
 
-$(document).ready(function(){
+var getSupportedContentTypes = function(contentTypes){
+    // getting the right set of supported content types by checking place supported and app supported content types
+    var supportedContentTypes= []
+    _.forEach(contentTypes, function(n){
+        n = n.substring(0, n.length - 1);
+        if(CONTENT_TYPES_SUPPORTED_BY_APP.indexOf(n) > -1)
+            supportedContentTypes.push(n)
+    })
+    return supportedContentTypes;
+
+}
+
+function setupEventHandlersAndDisplayData() {
     $("#move-other-content-tab").click(setupForOtherContent);
-    $("#move-blog-posts-tab").click(setupForBlog);
     $("#moveContent").click(processMoveContent);
     $("#target_place_picker").click(displayTargetPlacePicker);
     $("#refreshContent").click(refreshContent);
@@ -174,4 +186,20 @@ $(document).ready(function(){
     $("#sortByOption").change(refreshContent);
     $("#selectAllContent").change(viewHandler.selectAllContent);
     displayContentInCurrentPlace()
+}
+$(document).ready(function(){
+    jiveWrapper.getContentTypesSupportedByCurrentPlace().then(function(contentTypes){
+        contentTypesForCurrentPlace = getSupportedContentTypes(contentTypes);
+
+        if(contentTypes.indexOf("blog") < 0){
+            viewHandler.disableBlogsView()
+            setupForOtherContent();
+            setupEventHandlersAndDisplayData();
+        } else {
+            $("#move-blog-posts-tab").click(setupForBlog);
+            setupForBlog()
+            setupEventHandlersAndDisplayData();
+        }
+    })
+
 });
