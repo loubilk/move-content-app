@@ -94,6 +94,7 @@ If you do find any failure then just click the green color Refresh content butto
  
 
 **Critical Fixes**
+
 The checkin https://github.com/shahpawan/move-content-app/commit/f3306d160a5e66e09a2f86cd0a632f4b5021c3df is for a critical bug where app stops working if a content type supported by app is not supported by the current place.
 I have put a wuick fix where I get all content types supported by a place, convert them into format accepted by content api (simple plural to singular) and also compare the list of supported content types between the app and the place. If a place does not support blog, I have hidden the blog tab for that place.
 I am in process of converting this into an angular app, which will make the code better. For now, this checkin resolves this bug
