@@ -1,4 +1,4 @@
 {
-    "clientUrl": "http://localhost",
-    "port": "4000"
+    "clientUrl": "https://sandbox.jiveon.com/",
+    "port": "443"
 }
